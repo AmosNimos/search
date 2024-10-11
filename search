@@ -1,0 +1,52 @@
+#!/bin/bash
+################################################################################
+# Name:        search
+# Date:        2024-10-10
+# Author:      Amosnimos
+# Description: A streamlined CLI wrapper for find, offering simpler flags and enhanced user options for quick, customizable file searches.
+################################################################################
+
+# Function to check if a variable exists and return its value or a default if it does not exist
+exist() {
+    local var_value="$1"
+    local default_value="${2:-}"  # Default to an empty string if no second argument
+    echo "${var_value:-$default_value}"
+}
+
+# Check if the flag library is available
+if [ -f "flag" ]; then
+    # source flag script
+    . flag
+fi
+
+# Function to print help information
+print_help() {
+    echo "Usage: search [name] [type] [directory] [depth]"
+    echo
+    echo "Arguments:"
+    echo "  name      : Name pattern to search for (required)"
+    echo "  type      : Type of file to search for (default: f for file)"
+    echo "  directory : Starting directory for the search (default: current directory)"
+    echo "  depth     : Maximum search depth (default: 3)"
+    echo
+    echo "Example: search myfile.txt f /home/user 2"
+    exit 0
+}
+
+
+if [[ -n "$flag_f" && "$flag_f" != "0" ]] || [[ -n "$flag_t" && "$flag_t" != "0" ]] || [[ -n "$flag_d" && "$flag_d" != "0" ]] || [[ -n "$flag_s" && "$flag_s" != "0" ]] || [[ -n "$flag_h" && "$flag_h" != "0" ]]; then
+    name=$(exist "$flag_f") # File name pattern
+    type=$(exist "$flag_t" "f") # Type (default to file)
+    dir=$(exist "$flag_d" ".") # Starting directory (default to current directory)
+    depth=$(exist "$flag_s" "3") # Search depth (default to 3)
+    [[ $flag_h ]] && print_help # Show help if -h is provided
+else
+    # Validate input arguments and assign them to variables
+    name=$(exist "$1") || { echo "Error: Name pattern is required."; print_help; }
+    type=$(exist "$2" "f") # Type (default to file)
+    dir=$(exist "$3" ".") # Starting directory (default to current)
+    depth=$(exist "$4" "3") # Search depth (default to 3)
+fi
+
+# Construct and execute the find command
+find "$dir" -maxdepth "$depth" -iname "$name" -type "$type" 
